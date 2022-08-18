@@ -70,7 +70,7 @@ def MakeMIC(pwd, ssid, A, B, data, wpa = False):
 #for a 4-way handshake
 def RunTest():
     #the pre-shared key (PSK)
-    psk = "abcdefgh"
+    psk = "12345678"
     #ssid name
     ssid = "Harkonen"
     #ANonce
@@ -173,11 +173,11 @@ def TestPwds(S, ssid, aNonce, sNonce, apMac, cliMac, data, data2, data3, targMic
     return None
 
 if __name__ == "__main__":
-    
+    pass
     RunTest()
     #Read a file of passwords containing
     #passwords separated by a newline
-    with open('passwd.txt') as f:
+    with open('wordlist.txt') as f:
         S = []
         for l in f:
             S.append(l.strip())

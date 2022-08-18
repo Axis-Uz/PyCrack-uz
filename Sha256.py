@@ -3,11 +3,11 @@ Sha256.py
 A straightforward implementation of the SHA256 algorithm.
 The focus of the code is on clarity and not performance.
 """
-W = 32          #Number of bits in word
+W = 32  # Number of bits in word
 M = 1 << W
-FF = M - 1      #0xFFFFFFFF
+FF = M - 1  # 0xFFFFFFFF
 
-#Constants from SHA256 definition
+# Constants from SHA256 definition
 K = (0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
      0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -25,9 +25,10 @@ K = (0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
      0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2)
 
-#Initial values for compression function
+# Initial values for compression function
 I = (0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
      0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19)
+
 
 def RR(x, b):
     '''
@@ -35,14 +36,16 @@ def RR(x, b):
     '''
     return ((x >> b) | (x << (W - b))) & FF
 
+
 def Pad(W):
-	'''
-	Pads the string according to SHA256 standard.
-	'''
-    mdi = len(W) % 64           
-    L = (len(W) << 3).to_bytes(8, 'big')        #Binary of len(W) in bits
-    npad = 55 - mdi if mdi < 56 else 119 - mdi  #Pad so 64 | len; add 1 block if needed
-    return bytes(W, 'ascii') + b'\x80' + (b'\x00' * npad) + L   #64 | 1 + npad + 8 + len(W)
+    '''Pads the string according to SHA256 standard.'''
+    mdi = len(W) % 64
+    L = (len(W) << 3).to_bytes(8, 'big')  # Binary of len(W) in bits
+    # Pad so 64 | len; add 1 block if needed
+    npad = 55 - mdi if mdi < 56 else 119 - mdi
+    # 64 | 1 + npad + 8 + len(W)
+    return bytes(W, 'ascii') + b'\x80' + (b'\x00' * npad) + L
+
 
 def Sha256CF(Wt, Kt, A, B, C, D, E, F, G, H):
     '''
@@ -55,24 +58,28 @@ def Sha256CF(Wt, Kt, A, B, C, D, E, F, G, H):
     T1 = H + S1 + Ch + Wt + Kt
     return (T1 + S0 + Ma) & FF, A, B, C, (D + T1) & FF, E, F, G
 
+
 def Sha256(M):
-    M = Pad(M)          #Pad message so that length is divisible by 64
-    DG = list(I)        #Digest as 8 32-bit words
+    M = Pad(M)  # Pad message so that length is divisible by 64
+    DG = list(I)  # Digest as 8 32-bit words
     for j in range(0, len(M), 64):
         S = M[j:j + 64]
         W = [0] * 64
-        W[0:16] = [int.from_bytes(S[i:i + 4], 'big') for i in range(0, 64, 4)]  
+        W[0:16] = [int.from_bytes(S[i:i + 4], 'big') for i in range(0, 64, 4)]
         for i in range(16, 64):
             s0 = RR(W[i - 15], 7) ^ RR(W[i - 15], 18) ^ (W[i - 15] >> 3)
             s1 = RR(W[i - 2], 17) ^ RR(W[i - 2], 19) ^ (W[i - 2] >> 10)
             W[i] = (W[i - 16] + s0 + W[i-7] + s1) & FF
         A, B, C, D, E, F, G, H = DG
         for i in range(64):
-            A, B, C, D, E, F, G, H = Sha256CF(W[i], K[i], A, B, C, D, E, F, G, H)
+            A, B, C, D, E, F, G, H = Sha256CF(
+                W[i], K[i], A, B, C, D, E, F, G, H)
         DG = [(X + Y) & FF for X, Y in zip(DG, (A, B, C, D, E, F, G, H))]
-    return b''.join(Di.to_bytes(4, 'big') for Di in DG)  #Convert to byte array
+    # Convert to byte array
+    return b''.join(Di.to_bytes(4, 'big') for Di in DG)
 
-def ISha256CF(Wt, Kt, A, B, C, D, E, F, G, H, ei = 0, hi = 0):
+
+def ISha256CF(Wt, Kt, A, B, C, D, E, F, G, H, ei=0, hi=0):
     Ch = (F & G) ^ (~F & H)
     Ma = (B & C) ^ (B & D) ^ (C & D)
     S0 = RR(B, 2) ^ RR(B, 13) ^ RR(B, 22)
@@ -81,10 +88,13 @@ def ISha256CF(Wt, Kt, A, B, C, D, E, F, G, H, ei = 0, hi = 0):
     SE = E - A + S0 + Ma + hi * M
     print((Ch, Ma, S0, S1))
     return B, C, D, SE, F, G, H, SH
-    
+
+
 if __name__ == "__main__":
-	#Unit test for the SHA256 function
-    import random, hashlib, time
+    # Unit test for the SHA256 function
+    import random
+    import hashlib
+    import time
     nt = 4000
     ps = [chr(i) for i in range(32, 128)]
     l1, l2 = [], []
